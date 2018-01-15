@@ -1,0 +1,4 @@
+def get_photo
+  @photos = Photo.all
+  render :json => @photos.to_json(:methods => [:url])
+end
