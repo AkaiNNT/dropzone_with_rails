@@ -1,0 +1,54 @@
+$("#myID").dropzone({
+    init: function() {
+    // load image from model
+      var thisDropzone = this;
+      $.get("<%= url %>", function( data ) {
+        // alert("Done");
+        // console.log("Data: ", data);
+        $.each(data, function(key,value){ //loop through it
+          console.log(value);
+          var mockFile = { name: value.image_file_name, size: value.image_file_size }; // here we get the file name and size as response 
+
+          thisDropzone.options.addedfile.call(thisDropzone, mockFile);
+
+          thisDropzone.options.thumbnail.call(thisDropzone, mockFile, value.url); //uploadsfolder is the folder where you have all those uploaded files
+          thisDropzone.emit("complete", mockFile); // remove process bar
+
+
+      });
+      }, "json" );
+    },
+    // restrict image size to a maximum 5MB
+    maxFilesize: 5,
+
+    // changed the passed param to one accepted by
+    // our rails app
+    // paramName: "upload[image]",
+    // show remove links on each image upload
+    addRemoveLinks: true,
+    // if the upload was successful
+    success: function(file, response){
+      // find the remove button link of the uploaded file and give it an id
+      // based of the fileID response from the server
+      $(file.previewTemplate).find('.dz-remove').attr('id', response.fileID);
+      // add the dz-success class (the green tick sign)
+      $(file.previewElement).addClass("dz-success");
+    },
+    //when the remove button is clicked
+    removedfile: function(file){
+      // grap the id of the uploaded file we set earlier
+      $(this).addClass("dz-hidden-input");
+      $(file.previewElement).fadeOut(); //hide preview
+      var id = $(file.previewTemplate).find('.dz-remove').attr('id'); 
+
+      // make a DELETE ajax request to delete the file
+      $.ajax({
+        type: 'DELETE',
+        url: '<%= url %>' + id,
+        success: function(file){
+          // console.log(data.message);
+          $(file.previewTemplate).fadeOut()
+        }
+      });
+    }
+  });
